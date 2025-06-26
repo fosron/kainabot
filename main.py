@@ -45,7 +45,7 @@ def scrape_price(url):
         # Locate the section title "Pardavėjai pagal mažiausią kainą"
         low_price_element = soup.select_one('span[itemprop="lowPrice"]')
         if low_price_element:
-            low_price_text = low_price_element.text.strip().replace('\xa0', '').replace('€', '').replace(',', '.')
+            low_price_text = low_price_element.text.strip().replace('\xa0', '').replace('€', '').replace(',', '')
             try:
                 price = float(low_price_text)
                 print(f"Found low price: {price}€")
