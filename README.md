@@ -17,30 +17,30 @@ Kainabot is a desktop application built with Electron that tracks the prices of 
    ```
 3. **Install Python dependencies (required for data fetching):**
    ```bash
-   pip install -r requirements.txt
+   pip install -r python/requirements.txt
    ```
-4. **Configure environment variables (for Telegram notifications in the Electron app):**
-   - Copy `.env.example` to `.env` and fill in your Telegram token, chat ID, and product names/URLs. These are used by the Electron app for notifications and product tracking.
-5. **Run the Electron app (main entry point):**
+4. **Run the Electron app (main entry point):**
    ```bash
    npm start
    ```
-   This will launch the Kainabot desktop UI, which uses the Python script in the background to fetch prices and sends Telegram notifications if enabled.
-6. *(Optional)* **Run the Python script directly (scraping only, no notifications or UI):**
-   If you only want to scrape and save prices to `prices.json` without notifications or UI:
-   ```bash
-   python main.py
-   ```
+   This will launch the Kainabot desktop UI. Upon first launch, you will be prompted to configure your product tracking and Telegram notification settings directly within the app's settings menu.
 
-## Environment Variables (used by Electron app for Telegram)
-- `TELEGRAM_TOKEN`: Your Telegram bot token
-- `TELEGRAM_CHAT_ID`: Your Telegram chat ID
-- `PRODUCT_NAMES`: Comma-separated list of product names
-- `PRODUCT_URLS`: Comma-separated list of product URLs (order must match names)
+## Configuration
+All application settings, including product names, URLs, Telegram bot token, and chat ID, are now configured directly within the application's settings menu.
+
+## Building for Release
+The application can be packaged for macOS, Windows, and Ubuntu using `electron-builder` and PyInstaller. A GitHub Actions workflow automates this process on new GitHub Releases.
+
+To create a new release:
+1. Tag your commit (e.g., `git tag -a v1.0.0 -m "Release v1.0.0"`).
+2. Push the tag to GitHub (`git push origin v1.0.0`).
+3. Create a new release on GitHub from the pushed tag.
+
+The GitHub Actions workflow will then build and attach the platform-specific executables to your release.
 
 ## Notes
-- The app stores the last known prices in `prices.json` (ignored by git).
-- Make sure your bot has permission to message your chat if using Telegram notifications.
+- The app stores the last known prices and user settings locally.
+- Ensure your Telegram bot has permission to message your chat if using Telegram notifications.
 
 ## License
 MIT

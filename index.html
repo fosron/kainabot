@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Kainabot</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -10,97 +11,50 @@
     <h1>Kainabot</h1>
     <div>
       <button id="refresh"><i class="fas fa-sync-alt"></i></button>
+      <button id="settings-button"><i class="fas fa-cog"></i></button>
       <button id="exit-app"><i class="fas fa-times"></i></button>
     </div>
   </div>
-  <div class="content">
+  <div class="content" id="main-content">
+    <div id="message-display" class="message-display"></div>
     <ul id="products"></ul>
     <div class="loader" id="loader">Loading...</div>
 
-    <div class="settings-section">
-      <h2>Auto-Reload Settings</h2>
-      <div class="setting-item">
-        <label for="autoReloadEnabled">Enable Auto-Reload:</label>
-        <input type="checkbox" id="autoReloadEnabled">
-      </div>
-      <div class="setting-item">
-        <label for="reloadInterval">Reload Interval (hours):</label>
-        <input type="number" id="reloadInterval" value="6" min="1">
-      </div>
     </div>
+
+  <div class="settings-page" id="settings-page" style="display: none;">
+    <h2>Auto-Reload Settings</h2>
+    <div class="setting-item">
+      <label for="autoReloadEnabled">Enable Auto-Reload:</label>
+      <input type="checkbox" id="autoReloadEnabled">
+    </div>
+    <div class="setting-item">
+      <label for="reloadInterval">Reload Interval (hours):</label>
+      <input type="number" id="reloadInterval" value="6" min="1">
+    </div>
+
+    <h2>General Settings</h2>
+    <div class="setting-item">
+      <label for="productNames">Product Names (comma-separated):</label>
+      <input type="text" id="productNames" placeholder="e.g., Product A, Product B">
+    </div>
+    <div class="setting-item">
+      <label for="productUrls">Product URLs (comma-separated):</label>
+      <input type="text" id="productUrls" placeholder="e.g., http://example.com/a, http://example.com/b">
+    </div>
+    <div class="setting-item">
+      <label for="telegramToken">Telegram Bot Token:</label>
+      <input type="text" id="telegramToken" placeholder="Your Telegram Bot Token">
+    </div>
+    <div class="setting-item">
+      <label for="telegramChatId">Telegram Chat ID:</label>
+      <input type="text" id="telegramChatId" placeholder="Your Telegram Chat ID">
+    </div>
+    <button id="save-settings">Save Settings</button>
+    <button id="back-button">Back to Main</button>
   </div>
 
-  <script>
-    const productsList = document.getElementById('products');
-    const refreshButton = document.getElementById('refresh');
-    const exitButton = document.getElementById('exit-app');
-    const loader = document.getElementById('loader');
-    const autoReloadEnabledCheckbox = document.getElementById('autoReloadEnabled');
-    const reloadIntervalInput = document.getElementById('reloadInterval');
-
-    async function renderPrices(getPricesFunction) {
-      loader.style.display = 'block';
-      productsList.innerHTML = '';
-      const { currentPrices, URLS } = await getPricesFunction();
-      for (const [product, price] of Object.entries(currentPrices)) {
-        const li = document.createElement('li');
-        li.innerHTML = `<span class="product-name">${product} <i class="fas fa-external-link-alt open-link-icon" data-url="${URLS[product]}"></i></span><span class="product-price">${price}€</span>`;
-        productsList.appendChild(li);
-      }
-      loader.style.display = 'none';
-
-      // Add event listeners to the new icons
-      document.querySelectorAll('.open-link-icon').forEach(icon => {
-        icon.addEventListener('click', (event) => {
-          event.stopPropagation(); // Prevent li click if any
-          window.electron.openExternalLink(event.target.dataset.url);
-        });
-      });
-    }
-
-    refreshButton.addEventListener('click', () => renderPrices(window.electron.getPrices));
-    exitButton.addEventListener('click', () => window.electron.closeApp());
-
-    // Handle system theme changes
-    window.electron.onSystemThemeChanged((theme) => {
-      document.body.classList.remove('light-mode', 'dark-mode');
-      document.body.classList.add(`${theme}-mode`);
-    });
-
-    // Set initial theme
-    window.electron.getSystemTheme().then((theme) => {
-      document.body.classList.add(`${theme}-mode`);
-    });
-
-    // Auto-reload settings
-    window.electron.getAutoReloadConfig().then(config => {
-      autoReloadEnabledCheckbox.checked = config.enabled;
-      reloadIntervalInput.value = config.intervalHours;
-      reloadIntervalInput.disabled = !config.enabled;
-    });
-
-    autoReloadEnabledCheckbox.addEventListener('change', () => {
-      const enabled = autoReloadEnabledCheckbox.checked;
-      reloadIntervalInput.disabled = !enabled;
-      window.electron.setAutoReloadConfig({
-        enabled,
-        intervalHours: parseInt(reloadIntervalInput.value, 10),
-      });
-    });
-
-    reloadIntervalInput.addEventListener('change', () => {
-      window.electron.setAutoReloadConfig({
-        enabled: autoReloadEnabledCheckbox.checked,
-        intervalHours: parseInt(reloadIntervalInput.value, 10),
-      });
-    });
-
-    // Listen for auto-reload triggers from main process
-    window.electron.onAutoReloadTriggered(() => {
-      renderPrices(window.electron.getPrices);
-    });
-
-    renderPrices(window.electron.getInitialPrices);
-  </script>
+  <script src="renderer.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>

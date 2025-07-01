@@ -1,0 +1,114 @@
+name: Build and Release
+
+on: 
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Python dependencies and build executable (macOS/Linux)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd python
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        pip install pyinstaller
+        pyinstaller --onefile --name main --distpath dist --clean main.py
+        deactivate
+
+    - name: Install Python dependencies and build executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd python
+        python -m venv venv
+        .\venv\Scripts\activate
+        pip install -r requirements.txt
+        pip install pyinstaller
+        pyinstaller --onefile --name main.exe --distpath dist --clean main.py
+        deactivate
+
+    - name: Install Electron dependencies
+      run: npm install
+
+    - name: Build Electron app
+      run: npm run build
+
+    - name: Upload artifact (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: KainaBot-macOS
+        path: dist/*.dmg
+
+    - name: Upload artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: KainaBot-Windows
+        path: dist/*.exe
+
+    - name: Upload artifact (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: KainaBot-Linux
+        path: dist/*.AppImage
+
+    - name: Get release
+      id: get_release
+      uses: bruceadams/get-release@v1.3.2
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload Release Asset (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
+        asset_path: ./dist/*.dmg
+        asset_name: KainaBot-macOS-${{ github.ref_name }}.dmg
+        asset_content_type: application/x-apple-diskimage
+
+    - name: Upload Release Asset (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
+        asset_path: ./dist/*.exe
+        asset_name: KainaBot-Windows-${{ github.ref_name }}.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
+
+    - name: Upload Release Asset (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
+        asset_path: ./dist/*.AppImage
+        asset_name: KainaBot-Linux-${{ github.ref_name }}.AppImage
+        asset_content_type: application/x-executable

@@ -1,23 +1,15 @@
-from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
 import json
-import os
-
-# Load environment variables from .env file
-load_dotenv()
-
-# URLs to scrape from environment variables (dynamic loading)
-PRODUCT_NAMES = os.getenv('PRODUCT_NAMES', '').split(',')
-PRODUCT_URLS = os.getenv('PRODUCT_URLS', '').split(',')
-URLS = dict(zip([name.strip() for name in PRODUCT_NAMES], [url.strip() for url in PRODUCT_URLS]))
+import argparse
+import sys
 
 # File to store last prices
 PRICE_FILE = "prices.json"
 
 def scrape_price(url):
     try:
-        print(f"Scraping URL: {url}")
+        print(f"Scraping URL: {url}", file=sys.stderr)
         
         # Custom headers to mimic a browser
         headers = {
@@ -30,7 +22,7 @@ def scrape_price(url):
         response = requests.get(url, headers=headers)
         
         if response.status_code != 200:
-            print(f"Failed to fetch {url}, Status Code: {response.status_code}")
+            print(f"Failed to fetch {url}, Status Code: {response.status_code}", file=sys.stderr)
             return None
 
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -41,38 +33,38 @@ def scrape_price(url):
             low_price_text = low_price_element.text.strip().replace('\xa0', '').replace('€', '').replace(',', '')
             try:
                 price = float(low_price_text)
-                print(f"Found low price: {price}€")
+                print(f"Found low price: {price}€", file=sys.stderr)
                 return price
             except ValueError:
-                print(f"Could not convert price string to float: '{low_price_text}'")
+                print(f"Could not convert price string to float: '{low_price_text}'", file=sys.stderr)
                 return None
         else:
-            print("No 'lowPrice' element found.")
+            print("No 'lowPrice' element found.", file=sys.stderr)
             return None
 
     except Exception as e:
-        print(f"Error scraping {url}: {e}")
+        print(f"Error scraping {url}: {e}", file=sys.stderr)
         return None
 
-# Save current prices
-def save_prices(prices):
-    try:
-        with open(PRICE_FILE, 'w') as file:
-            json.dump(prices, file)
-            print("Saved current prices:", prices)
-    except Exception as e:
-        print(f"Error saving prices file: {e}")
-
 # Main function to check prices and send updates
-def scrape_and_save_prices():
+def scrape_prices(product_names, product_urls):
     current_prices = {}
-    for product, url in URLS.items():
+    urls = dict(zip([name.strip() for name in product_names], [url.strip() for url in product_urls]))
+    for product, url in urls.items():
         price = scrape_price(url)
         if price is not None:
             current_prices[product] = price
     
-    save_prices(current_prices)
-
-# Execute script
+    return current_prices
 if __name__ == "__main__":
-    scrape_and_save_prices()
+    parser = argparse.ArgumentParser(description="Scrape product prices.")
+    parser.add_argument("--product_names", type=str, help="Comma-separated product names.")
+    parser.add_argument("--product_urls", type=str, help="Comma-separated product URLs.")
+    parser.add_argument("--telegram_token", type=str, help="Telegram Bot API Token.")
+    parser.add_argument("--telegram_chat_id", type=str, help="Telegram Chat ID.")
+    
+    args = parser.parse_args()
+
+    # Scrape prices and print as JSON
+    prices = scrape_prices(args.product_names.split(','), args.product_urls.split(','))
+    print(json.dumps(prices))
