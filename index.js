@@ -35,6 +35,39 @@ async function startApp() {
     },
   });
 
+  let autoReloadIntervalId = null;
+
+  const defaultAutoReloadConfig = {
+    enabled: false,
+    intervalHours: 6,
+  };
+
+  const getAutoReloadConfig = () => {
+    return store.get('autoReloadConfig', defaultAutoReloadConfig);
+  };
+
+  const startAutoReload = (intervalHours) => {
+    stopAutoReload(); // Clear any existing interval
+    const intervalMs = intervalHours * 60 * 60 * 1000;
+    autoReloadIntervalId = setInterval(async () => {
+      console.log("Auto-reloading prices...");
+      // Trigger a refresh in the UI if the window is open
+      if (mb.window && !mb.window.isDestroyed()) {
+        mb.window.webContents.send('auto-reload-triggered');
+      }
+      await checkPrices();
+    }, intervalMs);
+    console.log(`Auto-reload started with interval: ${intervalHours} hours`);
+  };
+
+  const stopAutoReload = () => {
+    if (autoReloadIntervalId) {
+      clearInterval(autoReloadIntervalId);
+      autoReloadIntervalId = null;
+      console.log("Auto-reload stopped.");
+    }
+  };
+
   mb.on("ready", () => {
     console.log("Menubar app is ready.");
     ipcMain.handle('get-system-theme', () => nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
@@ -50,6 +83,25 @@ async function startApp() {
     ipcMain.on('open-external-link', (event, url) => {
       shell.openExternal(url);
     });
+
+    ipcMain.handle('get-auto-reload-config', () => {
+      return getAutoReloadConfig();
+    });
+
+    ipcMain.on('set-auto-reload-config', (event, config) => {
+      store.set('autoReloadConfig', config);
+      if (config.enabled) {
+        startAutoReload(config.intervalHours);
+      } else {
+        stopAutoReload();
+      }
+    });
+
+    // Start auto-reload if enabled in config on app start
+    const initialConfig = getAutoReloadConfig();
+    if (initialConfig.enabled) {
+      startAutoReload(initialConfig.intervalHours);
+    }
   });
 
   function runPythonScraper() {

@@ -112,3 +112,64 @@ body.dark-mode .open-link-icon {
 body.dark-mode .open-link-icon:hover {
   color: #0a84ff;
 }
+
+.settings-section {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.dark-mode .settings-section {
+  background-color: #3c3c3c;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.settings-section h2 {
+  font-size: 1.1em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+body.dark-mode .settings-section h2 {
+  color: #f0f0f0;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+.setting-item label {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.setting-item input[type="number"] {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+body.dark-mode .setting-item input[type="number"] {
+  border-color: #555;
+  background-color: #444;
+  color: #f0f0f0;
+}
+
+.setting-item input[type="checkbox"] {
+  /* Basic styling for checkbox, OS will handle most of it */
+  transform: scale(1.2);
+  margin-right: 5px;
+}

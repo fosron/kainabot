@@ -7,4 +7,7 @@ contextBridge.exposeInMainWorld('electron', {
   onSystemThemeChanged: (callback) => ipcRenderer.on('system-theme-changed', (event, theme) => callback(theme)),
   closeApp: () => ipcRenderer.send('close-app'),
   openExternalLink: (url) => ipcRenderer.send('open-external-link', url),
+  getAutoReloadConfig: () => ipcRenderer.invoke('get-auto-reload-config'),
+  setAutoReloadConfig: (config) => ipcRenderer.send('set-auto-reload-config', config),
+  onAutoReloadTriggered: (callback) => ipcRenderer.on('auto-reload-triggered', () => callback()),
 });

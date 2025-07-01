@@ -16,6 +16,18 @@
   <div class="content">
     <ul id="products"></ul>
     <div class="loader" id="loader">Loading...</div>
+
+    <div class="settings-section">
+      <h2>Auto-Reload Settings</h2>
+      <div class="setting-item">
+        <label for="autoReloadEnabled">Enable Auto-Reload:</label>
+        <input type="checkbox" id="autoReloadEnabled">
+      </div>
+      <div class="setting-item">
+        <label for="reloadInterval">Reload Interval (hours):</label>
+        <input type="number" id="reloadInterval" value="6" min="1">
+      </div>
+    </div>
   </div>
 
   <script>
@@ -23,6 +35,8 @@
     const refreshButton = document.getElementById('refresh');
     const exitButton = document.getElementById('exit-app');
     const loader = document.getElementById('loader');
+    const autoReloadEnabledCheckbox = document.getElementById('autoReloadEnabled');
+    const reloadIntervalInput = document.getElementById('reloadInterval');
 
     async function renderPrices(getPricesFunction) {
       loader.style.display = 'block';
@@ -56,6 +70,34 @@
     // Set initial theme
     window.electron.getSystemTheme().then((theme) => {
       document.body.classList.add(`${theme}-mode`);
+    });
+
+    // Auto-reload settings
+    window.electron.getAutoReloadConfig().then(config => {
+      autoReloadEnabledCheckbox.checked = config.enabled;
+      reloadIntervalInput.value = config.intervalHours;
+      reloadIntervalInput.disabled = !config.enabled;
+    });
+
+    autoReloadEnabledCheckbox.addEventListener('change', () => {
+      const enabled = autoReloadEnabledCheckbox.checked;
+      reloadIntervalInput.disabled = !enabled;
+      window.electron.setAutoReloadConfig({
+        enabled,
+        intervalHours: parseInt(reloadIntervalInput.value, 10),
+      });
+    });
+
+    reloadIntervalInput.addEventListener('change', () => {
+      window.electron.setAutoReloadConfig({
+        enabled: autoReloadEnabledCheckbox.checked,
+        intervalHours: parseInt(reloadIntervalInput.value, 10),
+      });
+    });
+
+    // Listen for auto-reload triggers from main process
+    window.electron.onAutoReloadTriggered(() => {
+      renderPrices(window.electron.getPrices);
     });
 
     renderPrices(window.electron.getInitialPrices);
