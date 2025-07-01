@@ -33,7 +33,7 @@ jobs:
         source venv/bin/activate
         pip install -r requirements.txt
         pip install pyinstaller
-        pyinstaller --onefile --name main --distpath dist --clean main.py
+        pyinstaller --onefile --name main --distpath dist --clean ../main.py
         deactivate
 
     - name: Install Python dependencies and build executable (Windows)
@@ -44,7 +44,7 @@ jobs:
         .\venv\Scripts\activate
         pip install -r requirements.txt
         pip install pyinstaller
-        pyinstaller --onefile --name main.exe --distpath dist --clean main.py
+        pyinstaller --onefile --name main.exe --distpath dist --clean ../main.py
         deactivate
 
     - name: Install Electron dependencies
