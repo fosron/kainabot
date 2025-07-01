@@ -2,14 +2,10 @@ from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
 import json
-from telegram import Bot
 import os
-import asyncio
 
 # Load environment variables from .env file
 load_dotenv()
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 # URLs to scrape from environment variables (dynamic loading)
 PRODUCT_NAMES = os.getenv('PRODUCT_NAMES', '').split(',')
@@ -39,9 +35,6 @@ def scrape_price(url):
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Debug: Print the HTML content (optional, for troubleshooting)
-        # print(soup.prettify())
-
         # Locate the section title "Pardavėjai pagal mažiausią kainą"
         low_price_element = soup.select_one('span[itemprop="lowPrice"]')
         if low_price_element:
@@ -61,21 +54,6 @@ def scrape_price(url):
         print(f"Error scraping {url}: {e}")
         return None
 
-# Load last recorded prices
-def load_prices():
-    try:
-        if os.path.exists(PRICE_FILE):
-            with open(PRICE_FILE, 'r') as file:
-                prices = json.load(file)
-                print("Loaded previous prices:", prices)
-                return prices
-        else:
-            print("No previous prices found.")
-            return {}
-    except Exception as e:
-        print(f"Error loading prices file: {e}")
-        return {}
-
 # Save current prices
 def save_prices(prices):
     try:
@@ -85,41 +63,16 @@ def save_prices(prices):
     except Exception as e:
         print(f"Error saving prices file: {e}")
 
-# Send message via Telegram bot
-async def send_telegram_message_async(message):
-    try:
-        print(f"Sending Telegram message: {message}")
-        bot = Bot(token=TELEGRAM_TOKEN)
-        await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-    except Exception as e:
-        print(f"Error sending Telegram message: {e}")
-
-def send_telegram_message(message):
-    asyncio.run(send_telegram_message_async(message))
-
 # Main function to check prices and send updates
-def check_prices():
-    last_prices = load_prices()
+def scrape_and_save_prices():
     current_prices = {}
-    messages = []
-
     for product, url in URLS.items():
         price = scrape_price(url)
         if price is not None:
             current_prices[product] = price
-            # Compare with last price
-            if product in last_prices and price != last_prices[product]:
-                messages.append(f"Price change for {product}: {last_prices[product]}€ → {price}€")
-            elif product not in last_prices:
-                messages.append(f"New product tracked: {product} at {price}€")
     
-    # Save current prices and send updates if needed
     save_prices(current_prices)
-    if messages:
-        send_telegram_message("\n".join(messages))
-    else:
-        print("No price changes detected.")
 
 # Execute script
 if __name__ == "__main__":
-    check_prices()
+    scrape_and_save_prices()

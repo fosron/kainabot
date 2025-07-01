@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kainabot</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <div class="header">
+    <h1>Kainabot</h1>
+    <div>
+      <button id="refresh"><i class="fas fa-sync-alt"></i></button>
+      <button id="exit-app"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="content">
+    <ul id="products"></ul>
+    <div class="loader" id="loader">Loading...</div>
+  </div>
+
+  <script>
+    const productsList = document.getElementById('products');
+    const refreshButton = document.getElementById('refresh');
+    const exitButton = document.getElementById('exit-app');
+    const loader = document.getElementById('loader');
+
+    async function renderPrices(getPricesFunction) {
+      loader.style.display = 'block';
+      productsList.innerHTML = '';
+      const { currentPrices, URLS } = await getPricesFunction();
+      for (const [product, price] of Object.entries(currentPrices)) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="product-name">${product} <i class="fas fa-external-link-alt open-link-icon" data-url="${URLS[product]}"></i></span><span class="product-price">${price}€</span>`;
+        productsList.appendChild(li);
+      }
+      loader.style.display = 'none';
+
+      // Add event listeners to the new icons
+      document.querySelectorAll('.open-link-icon').forEach(icon => {
+        icon.addEventListener('click', (event) => {
+          event.stopPropagation(); // Prevent li click if any
+          window.electron.openExternalLink(event.target.dataset.url);
+        });
+      });
+    }
+
+    refreshButton.addEventListener('click', () => renderPrices(window.electron.getPrices));
+    exitButton.addEventListener('click', () => window.electron.closeApp());
+
+    // Handle system theme changes
+    window.electron.onSystemThemeChanged((theme) => {
+      document.body.classList.remove('light-mode', 'dark-mode');
+      document.body.classList.add(`${theme}-mode`);
+    });
+
+    // Set initial theme
+    window.electron.getSystemTheme().then((theme) => {
+      document.body.classList.add(`${theme}-mode`);
+    });
+
+    renderPrices(window.electron.getInitialPrices);
+  </script>
+</body>
+</html>
