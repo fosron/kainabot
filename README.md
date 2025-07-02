@@ -2,6 +2,8 @@
 
 Kainabot is a desktop application built with Electron that tracks the prices of selected products from Lithuanian price comparison websites. It features a modern UI for managing tracked products and also supports Telegram notifications when prices change.
 
+![Kainabot UI](screens/screen.png)
+
 ## Features
 - Desktop UI for tracking and viewing product prices
 - Scrapes product prices from multiple websites
