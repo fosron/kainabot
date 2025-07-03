@@ -135,14 +135,14 @@ async function startApp() {
       // In a packaged app, the Python executable will be in a specific location
       // relative to the app's resources.
       if (process.platform === 'darwin') {
-        // macOS: Contents/Resources/app/python/main
-        pythonExecutablePath = path.join(process.resourcesPath, 'app', 'python', 'main');
+        // macOS: Contents/Resources/python/dist/main
+        pythonExecutablePath = path.join(process.resourcesPath, 'python', 'dist', 'main');
       } else if (process.platform === 'win32') {
-        // Windows: resources/app/python/main.exe
-        pythonExecutablePath = path.join(process.resourcesPath, 'app', 'python', 'main.exe');
+        // Windows: resources/python/dist/main.exe
+        pythonExecutablePath = path.join(process.resourcesPath, 'python', 'dist', 'main.exe');
       } else {
-        // Linux: resources/app/python/main
-        pythonExecutablePath = path.join(process.resourcesPath, 'app', 'python', 'main');
+        // Linux: resources/python/dist/main
+        pythonExecutablePath = path.join(process.resourcesPath, 'python', 'dist', 'main');
       }
     } else {
       // In development, assume python3 is in the PATH and main.py is in the current directory

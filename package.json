@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder --publish=never"
   },
   "build": {
     "appId": "com.yourcompany.kainabot",
@@ -21,20 +21,7 @@
       "!build"
     ],
     "extraResources": [
-      {
-        "from": "python/dist/main",
-        "to": "app/python/main",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "python/dist/main.exe",
-        "to": "app/python/main.exe",
-        "filter": [
-          "**/*"
-        ]
-      }
+      "python/dist/"
     ],
     "mac": {
       "target": "dmg",
@@ -60,6 +47,7 @@
   },
   "devDependencies": {
     "electron": "^31.2.1",
+    "electron-builder": "^26.0.12",
     "electron-reload": "^2.0.0-alpha.1",
     "prettier": "3.6.2"
   }
